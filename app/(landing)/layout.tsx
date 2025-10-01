@@ -3,6 +3,8 @@ import "./globals.css";
 
 import Header from "./components/Nav2/page";
 import Footer from "./components/footer";
+import { redirect } from "next/dist/server/api-utils";
+import { useRouter } from "next/navigation";
 
 
 
@@ -16,6 +18,11 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const router = useRouter();
+  const tes = true;
+  if (tes) { 
+    router.push('/admin');
+  }
   return (
     <main className="">
       <div className="fixed w-full top-0 left-0 z-50">

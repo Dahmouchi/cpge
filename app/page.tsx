@@ -1,3 +1,5 @@
+"use client"
+import { useRouter } from "next/navigation";
 import Header from "./(landing)/components/Nav2/page";
 import HeroSection from "./(landing)/components/body/hero-section";
 import PreInscriptions from "./(landing)/components/body/pre-inscription";
@@ -5,6 +7,11 @@ import Footer from "./(landing)/components/footer";
 
 export default function Home() {
 
+   const router = useRouter();
+  const tes = true;
+  if (tes) { 
+    router.push('/admin');
+  }
   return (
     <>
       <div className="fixed w-full top-0 left-0 z-50">
