@@ -1,0 +1,299 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(uuid())
+  username  String    @unique
+  password  String?
+  email     String?   @unique
+  firstName String?
+  lastName  String?
+  phone     String?
+  address   String?
+  role      Role      @default(ETUDIANT)
+  teacher   Teacher?
+  student   Student?
+  admin     Admin?
+  parent    Parent?
+  sessions  Session[]
+  posts     Posts[]
+  videos    Video[]
+  statut    Boolean   @default(false)
+}
+
+model Teacher {
+  id       Int       @id @default(autoincrement())
+  userId   String    @unique
+  user     User      @relation(fields: [userId], references: [id])
+  champMatier String?
+  classes  Classes[] @relation("TeacherClasses")
+  subjects Subject[] @relation("TeacherSubjects")
+  news     News[]
+  contents Content[]
+  absence Absence[]
+  remarks  Remark[]
+  emploi   Emploi[]
+
+}
+
+model Admin {
+  id       Int       @id @default(autoincrement())
+  userId   String    @unique
+  user     User      @relation(fields: [userId], references: [id])
+  contents Content[]
+  news     News[] 
+}
+
+model Student {
+  id       Int      @id @default(autoincrement())
+  userId   String   @unique
+  user     User     @relation(fields: [userId], references: [id])
+  classId  String   
+  class    Classes  @relation(fields: [classId], references: [id])
+  groupId          Int?
+  group            Group?    @relation(fields: [groupId], references: [id])
+  parentId Int?
+  parent   Parent?
+  absences Absence[]
+  remarks  Remark[]
+  grades   Grade[]
+  paymentAgreement PaymentAgreement?
+}
+
+model Parent {
+  id        Int     @id @default(autoincrement())
+  userId    String  @unique
+  user      User    @relation(fields: [userId], references: [id])
+  studentId Int     @unique
+  student   Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model Classes {
+  id          String    @id @default(uuid())
+  name        String?
+  description String?
+  students    Student[]
+  groups      Group[]
+  teachers    Teacher[] @relation("TeacherClasses")
+  subjects    Subject[] @relation("ClassSubjects")
+  absence     Absence[]
+  news        News[] @relation("classId")
+  emploi      Emploi[] @relation("ClassEmploi")
+}
+model Group {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  classId     String
+  class       Classes   @relation(fields: [classId], references: [id],onDelete: Cascade)
+  students    Student[]
+  emploi      Emploi[] @relation("groupEmploi")
+
+}
+
+model Emploi {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  document    File[]
+  createdAt   DateTime @default(now())
+  classId     String?
+  classes     Classes[] @relation("ClassEmploi") 
+  groupId     Int?
+  goups       Group[] @relation("groupEmploi") 
+  teacherId   Int?
+  teacher     Teacher?  @relation(fields: [teacherId], references: [id])
+}
+model Subject {
+  id             Int            @id @default(autoincrement())
+  name           String
+  description    String?
+  teachers       Teacher[]      @relation("TeacherSubjects")
+  classes        Classes[]      @relation("ClassSubjects")
+  contents       Content[]
+  absence        Absence[]
+  remark         Remark[]
+  grades         Grade[]        
+}
+
+model Content {
+  id        String   @id @default(uuid())
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+  document  File[]
+  subjectId Int
+  subject   Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  adminId   Int?
+  admin     Admin?    @relation(fields: [adminId], references: [id])
+  teacherId Int?
+  teacher   Teacher? @relation(fields: [teacherId], references: [id])
+}
+
+model News {
+  id        String   @id @default(uuid())
+  title     String
+  body      String
+  createdAt DateTime @default(now())
+  document  File[]
+  teacherId Int?
+  teacher   Teacher?  @relation(fields: [teacherId], references: [id])
+  adminId   Int?
+  admin     Admin? @relation(fields: [adminId], references: [id])
+  classId   String?
+  class     Classes[] @relation("classId")
+}
+model PaymentAgreement {
+  id              Int          @id @default(autoincrement())
+  studentId       Int          @unique
+  student         Student      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  totalAmount     Float        @default(0)// Total agreed price for the student
+  advanceAmount   Float         @default(0)// Initial advance payment
+  remainingAmount Float        // Amount left to be paid
+  installments    Installment[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+ 
+model Installment {
+  id                 Int              @id @default(autoincrement())
+  paymentAgreementId Int              // Foreign key field for the PaymentAgreement relation
+  paymentAgreement   PaymentAgreement @relation(fields: [paymentAgreementId], references: [id], onDelete: Cascade)
+  amount             Float            // Amount paid in this installment
+  type               String?
+  paymentDate        DateTime         @default(now())  // Date when the installment was paid
+  createdAt          DateTime         @default(now())
+}
+
+model File {
+  id        String  @id @default(uuid())
+  name      String
+  fileurl   String
+  filetype  String
+  contentId String?
+  newsId    String?
+  emploiId  String?
+  postId    Int?
+  videoId   Int?
+  content   Content? @relation(fields: [contentId], references: [id])
+  news      News?    @relation(fields: [newsId], references: [id])
+  emploi    Emploi? @relation(fields: [emploiId], references: [id])
+  post      Posts? @relation(fields: [postId], references: [id])
+  Video     Video? @relation(fields: [videoId], references: [id])
+}
+
+model Form {
+  id        Int    @id @default(autoincrement())
+  firstName String
+  lastName  String
+  email     String
+  phone     String
+  notes     String
+  status    String
+}
+
+model Posts {
+  id          Int     @id @default(autoincrement())
+  title       String
+  description String
+  handle      String?
+  body        String?
+  image       File[]
+  author      String
+  published   Boolean @default(false)
+  user        User    @relation(references: [id], fields: [author], onDelete: Cascade)
+}
+model Video {
+  id          Int     @id @default(autoincrement())
+  title       String
+  description String?
+  video       File[]
+  author      String
+  published   Boolean @default(false)
+  user        User    @relation(references: [id], fields: [author], onDelete: Cascade)
+}
+
+model Session {
+  id        String   @id
+  userId    String
+  expiresAt DateTime
+  user      User     @relation(references: [id], fields: [userId], onDelete: Cascade)
+}
+
+model InviteEtud {
+  id         String   @id @default(uuid())
+  name       String?
+  email      String?   @unique
+  token      String?   @unique
+  createdAt  DateTime @default(now())
+  expiresAt  DateTime @default(now())
+  used       Boolean  @default(false)
+}
+model Invite {
+  id     Int    @id @default(autoincrement())
+  userId String?
+  code   String?
+}
+
+model Absence {
+  id        Int      @id @default(autoincrement())
+  date      DateTime
+  type      String @default("Absence")
+  statu     String @default("Non justifié")
+  justification String?
+  classId   String
+  class     Classes  @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subjectId Int?
+  subject   Subject?  @relation(fields: [subjectId], references: [id])
+  content   String?
+  contentA  String?
+  studentId Int?
+  student   Student?  @relation(fields: [studentId], references: [id])
+  teacherId Int?
+  teacher   Teacher?  @relation(fields: [teacherId], references: [id])
+}
+
+model Remark {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  sender    String   @default("Administration")
+  subjectId Int?
+  subject   Subject?  @relation(fields: [subjectId], references: [id])
+  studentId Int?
+  student   Student?  @relation(fields: [studentId], references: [id])
+  teacherId Int?
+  teacher   Teacher?  @relation(fields: [teacherId], references: [id])
+}
+
+model Grade {
+  id             Int      @id @default(autoincrement())
+  subjectId      Int
+  subject        Subject  @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  studentId      Int
+  student        Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  value          Float
+  type           String
+  trim           String
+  etat           Boolean  @default(false)
+  absent         String   @default("justified")
+  etatJust       String   @default("null")
+  numero         Int      @default(1)
+  classement     Int?     // New field to store the ranking
+  maxmin         String?
+
+}
+
+enum Role {
+  ETUDIANT
+  ENSEIGNANT
+  ADMIN
+  PARENT
+  INVITE
+}
