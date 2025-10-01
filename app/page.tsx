@@ -4,6 +4,7 @@ import Header from "./(landing)/components/Nav2/page";
 import HeroSection from "./(landing)/components/body/hero-section";
 import PreInscriptions from "./(landing)/components/body/pre-inscription";
 import Footer from "./(landing)/components/footer";
+import Loading from "@/components/loading";
 
 export default function Home() {
 
@@ -14,13 +15,14 @@ export default function Home() {
   }
   return (
     <>
-      <div className="fixed w-full top-0 left-0 z-50">
+    <Loading />
+     {/* <div className="fixed w-full top-0 left-0 z-50">
        <Header />
       </div>
       <div className="mt-16">
       <HeroSection />
       </div>
-      {/*<SecondPart />*/}
+      
       <PreInscriptions />
       <div className="px-12 md:px-24 space-y-10 my-24">
         <h2 className="text-left text-5xl font-bold text-emerald-800 uppercase">
@@ -44,7 +46,7 @@ export default function Home() {
           referrerPolicy="no-referrer-when-downgrade"
         ></iframe>
       </div>
-      <Footer />
+      <Footer />*/}
     </>
   );
 }
